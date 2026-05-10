@@ -1,0 +1,116 @@
+/* ─────────────────────────────────────────────────────────────────────────
+ * 整合控制台 Portal 样式
+ * ───────────────────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f5f7fa;
+  --card-bg: #ffffff;
+  --primary: #1677ff;
+  --text: #1f1f1f;
+  --text-soft: #6b7280;
+  --border: #e5e7eb;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+               "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── topbar ─── */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 32px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
+.brand .logo { font-size: 22px; }
+.user { color: var(--text-soft); font-size: 14px; }
+
+/* ─── hero ─── */
+.hero {
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 64px 32px;
+  width: 100%;
+}
+.hero h1 {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.subtitle {
+  color: var(--text-soft);
+  margin-bottom: 48px;
+  font-size: 16px;
+}
+
+/* ─── modules ─── */
+.modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px 24px 24px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform .15s, box-shadow .15s, border-color .15s;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+  border-color: var(--primary);
+}
+.card-icon { font-size: 36px; }
+.card h2 { font-size: 20px; font-weight: 600; }
+.card p { color: var(--text-soft); font-size: 14px; line-height: 1.6; flex: 1; }
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-soft);
+}
+.arrow { font-size: 16px; color: var(--primary); }
+
+/* ─── footer ─── */
+.footer {
+  padding: 16px 32px;
+  border-top: 1px solid var(--border);
+  background: #fff;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+.footer a { color: var(--primary); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+
+/* ─── 移动端适配 ─── */
+@media (max-width: 600px) {
+  .topbar { padding: 12px 16px; }
+  .hero { padding: 32px 16px; }
+  .hero h1 { font-size: 24px; }
+  .modules { grid-template-columns: 1fr; gap: 16px; }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "social-media-management",
+  "version": "1.0.0",
+  "private": true,
+  "description": "门窗工厂社媒运营管理工具",
+  "scripts": {
+    "dev": "pnpm --parallel dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api dev",
+    "build": "pnpm --parallel build",
+    "build:web": "pnpm --filter web build",
+    "build:api": "pnpm --filter api build",
+    "test": "pnpm --parallel test",
+    "lint": "pnpm --parallel lint",
+    "db:migrate": "pnpm --filter api db:migrate",
+    "db:generate": "pnpm --filter api db:generate",
+    "db:seed": "pnpm --filter api db:seed",
+    "db:studio": "pnpm --filter api db:studio",
+    "prepare": "test -d .git && husky || true"
+  },
+  "lint-staged": {
+    "apps/web/**/*.{ts,tsx}": [
+      "cd apps/web && eslint --fix"
+    ],
+    "apps/api/**/*.ts": [
+      "cd apps/api && eslint --fix"
+    ]
+  },
+  "devDependencies": {
+    "husky": "^9.1.0",
+    "lint-staged": "^15.5.0",
+    "playwright": "^1.59.1"
+  },
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

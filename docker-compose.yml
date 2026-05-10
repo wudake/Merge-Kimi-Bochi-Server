@@ -1,0 +1,183 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Unified docker-compose.yml — 三项目整合系统
+#
+# 当前阶段:Phase 5(全模块接入,Portal 完善)
+#   已启用: postgres + redis + nginx + opman + fbse + dva
+#   全部服务已上线
+#
+# 启动:docker compose up -d
+# 验证:docker compose ps
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ─── 共享 PostgreSQL ───
+  postgres:
+    image: postgres:16-alpine
+    container_name: unified_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PG_USER:-opman}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:?PG_PASSWORD must be set in .env}
+      POSTGRES_DB: opman
+    ports:
+      # 仅本机调试需要,生产环境可删除此行避免外网暴露
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - unified
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-opman} -d opman"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── 共享 Redis ───
+  redis:
+    image: redis:7-alpine
+    container_name: unified_redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - unified
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ────────────────────────────────────────────────────────────────────
+  # 业务服务(全部已启用)
+  # ────────────────────────────────────────────────────────────────────
+
+  opman_api:
+    build: ./projects/Operation_Manage/apps/api
+    container_name: unified_opman_api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${PG_USER:-opman}:${PG_PASSWORD}@postgres:5432/opman?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      JWT_EXPIRES_IN: 2h
+      JWT_REFRESH_EXPIRES_IN: 7d
+      COOKIE_DOMAIN: app.${MAIN_DOMAIN}
+      PORT: 3000
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [unified]
+
+  opman_web:
+    build:
+      context: ./projects/Operation_Manage/apps/web
+      args:
+        VITE_BASE: /op/
+        VITE_API_BASE_URL: /op/api/v1
+    container_name: unified_opman_web
+    restart: unless-stopped
+    networks: [unified]
+
+  fbse_backend:
+    build: ./projects/Facebook-Script-Extract
+    container_name: unified_fbse_backend
+    restart: unless-stopped
+    environment:
+      REDIS_URL: redis://redis:6379/1
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      TEMP_DIR: /app/temp
+      OUTPUT_DIR: /app/output
+      AUTH_MODE: nginx_header
+    volumes:
+      - fbse_temp:/app/temp
+      - fbse_output:/app/output
+    depends_on: [redis]
+    networks: [unified]
+
+  fbse_worker:
+    build: ./projects/Facebook-Script-Extract
+    container_name: unified_fbse_worker
+    restart: unless-stopped
+    command: celery -A api.celery_app worker --loglevel=info --concurrency=2
+    environment:
+      REDIS_URL: redis://redis:6379/1
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      TEMP_DIR: /app/temp
+      OUTPUT_DIR: /app/output
+    volumes:
+      - fbse_temp:/app/temp
+      - fbse_output:/app/output
+      - fbse_whisper_cache:/root/.cache/whisper
+    depends_on: [redis, fbse_backend]
+    networks: [unified]
+
+  fbse_frontend:
+    build:
+      context: ./projects/Facebook-Script-Extract/frontend
+      args:
+        VITE_BASE: /fbse/
+        VITE_API_BASE_URL: /fbse/api
+    container_name: unified_fbse_frontend
+    restart: unless-stopped
+    networks: [unified]
+
+  dva_app:
+    build: ./projects/Dake-Video-Auto
+    container_name: unified_dva_app
+    restart: unless-stopped
+    environment:
+      APPLICATION_ROOT: /dva
+      AUTH_MODE: nginx_header
+      REDIS_URL: redis://redis:6379/2
+    volumes:
+      - dva_videos:/app/videos
+      - dva_assets:/app/assets
+      - dva_static:/app/static
+    networks: [unified]
+
+  nginx:
+    image: nginx:alpine
+    container_name: unified_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/locations:/etc/nginx/locations:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./portal:/usr/share/nginx/portal:ro
+    depends_on:
+      - opman_api
+      - opman_web
+      - fbse_backend
+      - fbse_frontend
+      - dva_app
+    networks: [unified]
+
+volumes:
+  postgres_data:
+  redis_data:
+  fbse_temp:
+  fbse_output:
+  fbse_whisper_cache:
+  dva_videos:
+  dva_assets:
+  dva_static:
+
+networks:
+  unified:
+    name: unified_network
+    driver: bridge

@@ -1,0 +1,349 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  MANAGER
+  OPERATOR
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum Platform {
+  TIKTOK
+  INSTAGRAM
+  YOUTUBE
+  FACEBOOK
+}
+
+enum AccountStatus {
+  ACTIVE
+  PAUSED
+  BANNED
+  APPEALING
+}
+
+enum ContentStatus {
+  PENDING
+  PRODUCING
+  READY
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ContentForm {
+  SHORT_VIDEO
+  IMAGE_TEXT
+  REELS
+  LONG_VIDEO
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum EffectLevel {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum TopicStatus {
+  PENDING
+  IN_USE
+  USED
+  DISCARDED
+}
+
+enum MaterialCategory {
+  PRODUCT
+  FACTORY
+  INSTALLATION
+  FEEDBACK
+  TEMPLATE
+}
+
+enum LeadStatus {
+  PENDING
+  FOLLOWING
+  QUOTED
+  WON
+  LOST
+}
+
+enum NotificationType {
+  CONTENT_PUBLISH
+  ACCOUNT_ALERT
+  REPORT_WEEKLY
+  REPORT_MONTHLY
+  SYSTEM
+}
+
+model User {
+  id            String     @id @default(uuid())
+  username      String     @unique @db.VarChar(50)
+  passwordHash  String     @map("password_hash") @db.VarChar(255)
+  realName      String     @map("real_name") @db.VarChar(50)
+  role          UserRole
+  email         String?    @db.VarChar(100)
+  phone         String?    @db.VarChar(20)
+  avatar        String?    @db.VarChar(255)
+  status        UserStatus @default(ACTIVE)
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  accounts      Account[]
+  contents      Content[]
+  comments      ContentComment[]
+  leads         Lead[]
+  topics        Topic[]
+  materials     Material[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+model AccountGroup {
+  id          String   @id @default(uuid())
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  accounts Account[]
+
+  @@map("account_groups")
+}
+
+model Account {
+  id              String        @id @default(uuid())
+  platform        Platform
+  name            String        @db.VarChar(100)
+  accountId       String?       @map("account_id") @db.VarChar(100)
+  accountType     String?       @map("account_type") @db.VarChar(50)
+  homeUrl         String?       @map("home_url") @db.VarChar(500)
+  market          String?       @db.VarChar(50)
+  targetAudience  String?       @map("target_audience") @db.Text
+  loginEmail      String?       @map("login_email") @db.VarChar(100)
+  loginPhone      String?       @map("login_phone") @db.VarChar(20)
+  loginPassword   String?       @map("login_password") @db.VarChar(255)
+  linkedPhone     String?       @map("linked_phone") @db.VarChar(20)
+  registeredAt    DateTime?     @map("registered_at") @db.Date
+  commonDevices   String?       @map("common_devices") @db.Text
+  status          AccountStatus @default(ACTIVE)
+  followerCount     Int           @default(0) @map("follower_count")
+  persona         String?       @db.Text
+  remark          String?       @db.Text
+  customGroup     String?       @map("custom_group") @db.VarChar(100)
+  contactInfo     Json?         @map("contact_info")
+  groupId         String?       @map("group_id")
+  tags            String[]
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  group    AccountGroup? @relation(fields: [groupId], references: [id])
+  operators User[]
+  contents  Content[]
+  leads     Lead[]
+  contentData ContentData[]
+
+  @@map("accounts")
+}
+
+model Content {
+  id                String        @id @default(uuid())
+  title             String        @db.VarChar(200)
+  topicId           String?       @map("topic_id")
+  operatorId        String?       @map("operator_id")
+  status            ContentStatus @default(PENDING)
+  plannedPublishAt  DateTime?     @map("planned_publish_at")
+  actualPublishAt   DateTime?     @map("actual_publish_at")
+  publishUrl        String?       @map("publish_url") @db.VarChar(500)
+  contentType       String?       @map("content_type") @db.VarChar(50)
+  script            String?       @db.Text
+  description       String?       @db.Text
+  attachments       Json?
+  productionTimeHours Decimal?    @map("production_time_hours") @db.Decimal(4, 1)
+  rating            String?       @db.VarChar(10)
+  remark            String?       @db.Text
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  topic       Topic?        @relation(fields: [topicId], references: [id])
+  operator    User?         @relation(fields: [operatorId], references: [id])
+  accounts    Account[]
+  contentData ContentData[]
+  leads       Lead[]
+  comments    ContentComment[]
+
+  @@map("contents")
+}
+
+model ContentComment {
+  id        String   @id @default(uuid())
+  contentId String   @map("content_id")
+  userId    String   @map("user_id")
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  contentItem Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("content_comments")
+}
+
+model ContentData {
+  id              String    @id @default(uuid())
+  contentId       String    @map("content_id")
+  accountId       String    @map("account_id")
+  views           BigInt    @default(0)
+  likes           BigInt    @default(0)
+  comments        BigInt    @default(0)
+  shares          BigInt    @default(0)
+  favorites       BigInt    @default(0)
+  completionRate  Decimal?  @map("completion_rate") @db.Decimal(5, 2)
+  followersGained Int       @default(0) @map("followers_gained")
+  totalFollowers  Int       @default(0) @map("total_followers")
+  dmLeads         Int       @default(0) @map("dm_leads")
+  commentLeads    Int       @default(0) @map("comment_leads")
+  profileClicks   Int       @default(0) @map("profile_clicks")
+  validLeads      Int       @default(0) @map("valid_leads")
+  recordDate      DateTime  @map("record_date") @db.Date
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [id])
+
+  @@unique([contentId, accountId, recordDate])
+  @@map("content_data")
+}
+
+model Topic {
+  id                String      @id @default(uuid())
+  title             String      @db.VarChar(200)
+  contentForm       ContentForm @map("content_form")
+  tags              String[]
+  productType       String?     @map("product_type") @db.VarChar(50)
+  contentType       String?     @map("content_type") @db.VarChar(50)
+  source            String?     @db.VarChar(255)
+  status            TopicStatus @default(PENDING)
+  usageCount        Int         @default(0) @map("usage_count")
+  isCompleted       Boolean     @default(false) @map("is_completed")
+  completedAt       DateTime?   @map("completed_at")
+  operatorId        String?     @map("operator_id")
+  publishedAccounts String?     @map("published_accounts") @db.Text
+  script            String?     @db.Text
+  copywriting       String?     @map("copywriting") @db.Text
+  remark            String?     @db.Text
+  createdBy         String      @map("created_by")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+
+  creator  User      @relation(fields: [createdBy], references: [id])
+  contents Content[]
+
+  @@map("topics")
+}
+
+model Material {
+  id            String           @id @default(uuid())
+  name          String           @db.VarChar(200)
+  nasPath       String           @map("nas_path") @db.VarChar(500)
+  thumbnailPath String?          @map("thumbnail_path") @db.VarChar(500)
+  category      MaterialCategory
+  tags          String[]
+  description   String?          @db.Text
+  fileType      String?          @map("file_type") @db.VarChar(50)
+  fileSize      BigInt?          @map("file_size")
+  usageCount    Int              @default(0) @map("usage_count")
+  isSensitive   Boolean          @default(false) @map("is_sensitive")
+  allowedRoles  String[]         @map("allowed_roles")
+  createdBy     String           @map("created_by")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  creator User @relation(fields: [createdBy], references: [id])
+
+  @@map("materials")
+}
+
+model Lead {
+  id                String     @id @default(uuid())
+  sourcePlatform    Platform   @map("source_platform")
+  sourceContentId   String?    @map("source_content_id")
+  sourceAccountId   String?    @map("source_account_id")
+  operatorId        String?    @map("operator_id")
+  leadTime          DateTime   @map("lead_time")
+  customerName      String?    @map("customer_name") @db.VarChar(100)
+  customerContact   String?    @map("customer_contact") @db.VarChar(200)
+  requirement       String?    @db.Text
+  status            LeadStatus @default(PENDING)
+  isValid           Boolean?   @map("is_valid")
+  validConfirmedBy  String?    @map("valid_confirmed_by")
+  validConfirmedAt  DateTime?  @map("valid_confirmed_at")
+  dealAmount        Decimal?   @map("deal_amount") @db.Decimal(12, 2)
+  remark            String?    @db.Text
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+
+  sourceContent Content? @relation(fields: [sourceContentId], references: [id])
+  sourceAccount Account? @relation(fields: [sourceAccountId], references: [id])
+  operator      User?    @relation(fields: [operatorId], references: [id])
+
+  @@map("leads")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String           @db.VarChar(200)
+  content   String           @db.Text
+  isRead    Boolean          @default(false) @map("is_read")
+  link      String?          @db.VarChar(500)
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Dictionary {
+  id        String   @id @default(uuid())
+  category  String   @db.VarChar(50)
+  code      String   @db.VarChar(50)
+  name      String   @db.VarChar(100)
+  sortOrder Int      @default(0) @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([category, code])
+  @@map("dictionaries")
+}
+
+model OperationLog {
+  id         String   @id @default(uuid())
+  userId     String?  @map("user_id")
+  username   String?  @db.VarChar(50)
+  action     String   @db.VarChar(100)
+  resource   String   @db.VarChar(100)
+  resourceId String?  @map("resource_id")
+  detail     Json?
+  ipAddress  String?  @map("ip_address") @db.VarChar(50)
+  userAgent  String?  @map("user_agent") @db.VarChar(500)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("operation_logs")
+}

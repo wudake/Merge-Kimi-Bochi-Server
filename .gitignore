@@ -1,0 +1,36 @@
+# ─── secrets ───
+.env
+.env.local
+.env.production
+
+# ─── nginx ssl ───
+nginx/ssl/*
+!nginx/ssl/.gitkeep
+
+# ─── 子项目自身的 .git/.gitignore 由各项目自管 ───
+
+# ─── runtime ───
+*.log
+*.pid
+data/
+backups/
+
+# ─── editor ───
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# ─── docker ───
+docker-compose.override.yml
+
+# ─── large assets / runtime ───
+projects/Dake-Video-Auto/assets/bgm/*.mp3
+projects/Dake-Video-Auto/videos/raw/*
+projects/Dake-Video-Auto/videos/edited/*
+projects/Dake-Video-Auto/output/*
+projects/Facebook-Script-Extract/output/*
+projects/Facebook-Script-Extract/temp/*
+
+# ─── sensitive backups ───
+migration-backup/

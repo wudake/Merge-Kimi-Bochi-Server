@@ -1,0 +1,13 @@
+import { chromium } from 'playwright';
+const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMmY4NWI5NC05YjA3LTQyYjYtOGUyYy0yZDVkZjEzNjk0ZWUiLCJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNzc3NTU2OTQ4LCJleHAiOjE3Nzc1NjQxNDh9.KLvSnXFDkprjfCOQPHX9PfJWgsAPUUGll34xMRSLYCI';
+const browser = await chromium.launch({ headless: true });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+await page.goto('http://localhost:5174/login');
+await page.evaluate((t) => localStorage.setItem('access_token', t), TOKEN);
+await page.goto('http://localhost:5174/contents');
+await page.waitForTimeout(3000);
+await page.click('label:has-text("周视图")');
+await page.waitForTimeout(1500);
+await page.screenshot({ path: '/tmp/week-auto-height.png', fullPage: true });
+console.log('截图: /tmp/week-auto-height.png');
+await browser.close();

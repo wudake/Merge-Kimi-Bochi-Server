@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dake视频自动化工具</title>
+    <!-- 徽标 - 现代渐变风格DK图标 -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23g)'/%3E%3Ctext x='50' y='68' font-size='42' text-anchor='middle' fill='white' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif' font-weight='800' letter-spacing='-2'%3EDK%3C/text%3E%3C/svg%3E">
+
+    <!-- 苹果设备图标 -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='180' height='180' rx='40' fill='url(%23g)'/%3E%3Ctext x='90' y='122' font-size='76' text-anchor='middle' fill='white' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif' font-weight='800' letter-spacing='-4'%3EDK%3C/text%3E%3C/svg%3E">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #06b6d4;
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.8);
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: rgba(148, 163, 184, 0.2);
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* 动态背景 */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 70%);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* 头部 */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.6s ease;
+            position: relative;
+        }
+
+        .user-bar {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.9em;
+        }
+
+        .user-bar .username {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .user-bar .btn-logout {
+            padding: 6px 12px;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+        }
+
+        .user-bar .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4);
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+
+        /* 卡片 */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeInUp 0.6s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
+        }
+
+        .card-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .step-number {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9em;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        /* 输入框 */
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 16px;
+            color: var(--text);
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* 按钮 */
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(148, 163, 184, 0.2);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* 任务队列卡片 */
+        .task-queue-card {
+            border-left: 4px solid var(--primary);
+        }
+
+        .queue-badge {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
+
+        .queue-status {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .queue-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .queue-label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .queue-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .queue-value.pending { color: #f59e0b; }
+        .queue-value.running { color: #3b82f6; }
+        .queue-value.completed { color: var(--success); }
+
+        .current-task {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .task-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .task-type {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .task-status {
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(148, 163, 184, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .task-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .task-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .task-item-type {
+            color: var(--text);
+        }
+
+        .task-item-status {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .task-item-status.pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .task-item-status.running {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .task-item-status.success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .task-item-status.failed {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error);
+        }
+
+        /* 加载动画 */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 状态提示 */
+        .status {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: none;
+            font-weight: 500;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .status.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status.show { display: block; }
+
+        /* 选项网格 */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--primary);
+        }
+
+        .option-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary);
+        }
+
+        /* 滑块 */
+        .range-group {
+            margin-bottom: 24px;
+        }
+
+        .range-group label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .range-value {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-top: 12px;
+            height: 6px;
+            background: rgba(148, 163, 184, 0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        /* 上传区域 */
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(15, 23, 42, 0.3);
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        /* 视频预览 */
+        .preview-video {
+            width: 100%;
+            max-width: 350px;
+            border-radius: 16px;
+            margin: 20px 0;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 按钮组 */
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .hidden { display: none !important; }
+
+        /* 分区标题 */
+        .section-title {
+            font-weight: 700;
+            color: var(--text);
+            margin: 28px 0 16px 0;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 1.1em;
+        }
+
+        /* 选择框 */
+        .select-box {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 16px;
+            color: var(--text);
+        }
+
+        /* 动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.6s ease;
+        }
+
+        /* 文件列表 */
+        .file-list { margin-top: 16px; }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        /* 日志显示区域 */
+        .log-container {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .log-line {
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .log-line:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: #64748b;
+            margin-right: 8px;
+        }
+
+        .log-info { color: #38bdf8; }
+        .log-error { color: #ef4444; }
+        .log-warn { color: #f59e0b; }
+        .log-debug { color: #94a3b8; }
+
+        .log-toggle {
+            margin-top: 10px;
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .log-toggle:hover {
+            text-decoration: underline;
+        }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .container { padding: 20px 16px; }
+            .header h1 { font-size: 2em; }
+            .card { padding: 24px; }
+            .options-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <div class="user-bar">
+                <span class="username">👤 {{ username or 'admin' }}</span>
+                <a href="{{ url_for('logout') }}" class="btn-logout">退出</a>
+            </div>
+            <div class="logo">
+                <div class="logo-icon">DK</div>
+            </div>
+            <h1>Dake视频自动化工具</h1>
+            <p>小红书/抖音视频下载 · 智能剪辑 · 一键导出</p>
+        </div>
+
+        <!-- 步骤 1: 获取视频 -->
+        <div class="card" id="step1">
+            <div class="card-title">
+                <span class="step-number">1</span>
+                获取视频
+            </div>
+            
+            <!-- 选项卡 -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button class="btn btn-secondary btn-sm" id="tab-download" onclick="switchTab('download')" style="flex: 1;">📥 链接下载</button>
+                <button class="btn btn-secondary btn-sm" id="tab-upload" onclick="switchTab('upload')" style="flex: 1;">📤 本地上传</button>
+            </div>
+            
+            <!-- 链接下载面板 -->
+            <div id="panel-download">
+                <div class="input-group">
+                    <label>视频链接（支持小红书/抖音）</label>
+                    <input type="text" id="xhs-url" placeholder="https://www.xiaohongshu.com/explore/...">
+                </div>
+
+                <button class="btn btn-primary" id="btn-download" onclick="downloadVideo()">
+                    <span>开始下载</span>
+                </button>
+            </div>
+            
+            <!-- 本地上传面板 -->
+            <div id="panel-upload" class="hidden">
+                <div class="input-group">
+                    <label>上传本地视频</label>
+                    <div class="upload-area" onclick="document.getElementById('video-file').click()">
+                        <p>🎬 点击或拖拽上传视频</p>
+                        <p style="font-size: 0.85em; color: var(--text-muted); margin-top: 8px;">支持 MP4, MOV, AVI, MKV, WEBM, M4V</p>
+                        <input type="file" id="video-file" accept=".mp4,.mov,.avi,.mkv,.webm,.m4v" style="display:none" onchange="uploadVideo(this)">
+                    </div>
+                </div>
+                <div id="uploaded-video-info" class="hidden" style="padding: 15px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; margin-bottom: 15px;">
+                    <p style="color: var(--success); margin: 0;">✅ <span id="uploaded-filename"></span></p>
+                    <p style="color: var(--text-muted); font-size: 0.85em; margin: 5px 0 0 0;">大小: <span id="uploaded-size"></span></p>
+                </div>
+            </div>
+            
+            <div class="status" id="download-status"></div>
+        </div>
+
+        <!-- 步骤 2: 剪辑配置 -->
+        <div class="card hidden" id="step2">
+            <div class="card-title">
+                <span class="step-number">2</span>
+                剪辑配置
+            </div>
+
+            <!-- Logo -->
+            <div class="section-title">📁 Logo 设置</div>
+            <div class="input-group">
+                <div class="upload-area" onclick="document.getElementById('logo-file').click()">
+                    <p>📤 点击上传 Logo (PNG)</p>
+                    <input type="file" id="logo-file" accept=".png" style="display:none" onchange="uploadLogo(this)">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>选择 Logo</label>
+                <select id="logo-select" class="select-box">
+                    <option value="">-- 请选择 --</option>
+                </select>
+            </div>
+
+            <!-- BGM -->
+            <div class="section-title">🎵 BGM 设置</div>
+            <div class="input-group">
+                <div class="upload-area" onclick="document.getElementById('bgm-file').click()">
+                    <p>🎼 点击上传 BGM (MP3)</p>
+                    <input type="file" id="bgm-file" accept=".mp3,.m4a" style="display:none" onchange="uploadBgm(this)">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>选择 BGM</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select id="bgm-select" class="select-box" style="flex: 1;" onchange="updateBgmPreview()">
+                        <option value="">-- 请选择 --</option>
+                    </select>
+                    <button class="btn btn-secondary btn-sm" id="btn-preview-bgm" onclick="previewBgm()" disabled>
+                        ▶️ 试听
+                    </button>
+                </div>
+                <!-- 音频播放器 -->
+                <div id="bgm-player-container" style="margin-top: 12px; display: none;">
+                    <audio id="bgm-audio-player" controls style="width: 100%; height: 36px;"></audio>
+                </div>
+            </div>
+
+            <!-- 音频设置 -->
+            <div class="section-title">🔊 音频设置</div>
+
+            <div class="options-grid">
+                <label class="option-item">
+                    <input type="checkbox" id="opt-replace-audio">
+                    <span>使用 BGM 替换原声</span>
+                </label>
+            </div>
+
+            <div class="range-group">
+                <label>
+                    原声音量
+                    <span class="range-value" id="orig-vol-value">100%</span>
+                </label>
+                <input type="range" id="original-volume" min="0" max="2" step="0.1" value="1"
+                       oninput="document.getElementById('orig-vol-value').textContent=Math.round(this.value*100)+'%'">
+            </div>
+
+            <div class="range-group">
+                <label>
+                    BGM 音量
+                    <span class="range-value" id="bgm-vol-value">80%</span>
+                </label>
+                <input type="range" id="bgm-volume" min="0" max="2" step="0.1" value="0.8"
+                       oninput="document.getElementById('bgm-vol-value').textContent=Math.round(this.value*100)+'%'">
+            </div>
+
+            <!-- 脚本配音 -->
+            <div class="section-title">🎙️ 脚本配音 (TTS)</div>
+            
+            <div class="options-grid">
+                <label class="option-item">
+                    <input type="checkbox" id="opt-tts" onchange="toggleTTSPanel()">
+                    <span>启用AI配音</span>
+                </label>
+            </div>
+            
+            <div id="tts-config-panel" style="display: none; padding: 20px; background: rgba(15, 23, 42, 0.5); border-radius: 12px; margin-bottom: 20px;">
+                <div class="input-group">
+                    <label>📝 输入文案</label>
+                    <textarea id="tts-text" rows="3" placeholder="输入要转换为语音的文案..." 
+                        style="width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); border-radius: 10px; color: var(--text); resize: vertical; font-size: 15px;"></textarea>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="input-group">
+                        <label>🎙️ 选择音色</label>
+                        <select id="tts-voice" class="select-box">
+                            <optgroup label="🇺🇸 US English - Female">
+                                <option value="en-US-AriaNeural" selected>Aria - Professional & Confident</option>
+                                <option value="en-US-AnaNeural">Ana - Young & Cheerful</option>
+                                <option value="en-US-AvaNeural">Ava - Natural & Elegant</option>
+                                <option value="en-US-AvaMultilingualNeural">Ava (Multilingual)</option>
+                                <option value="en-US-EmmaNeural">Emma - Warm & Friendly</option>
+                                <option value="en-US-EmmaMultilingualNeural">Emma (Multilingual)</option>
+                                <option value="en-US-JennyNeural">Jenny - Clear & Friendly</option>
+                                <option value="en-US-MichelleNeural">Michelle - Warm & Pleasant</option>
+                            </optgroup>
+                            <optgroup label="🇺🇸 US English - Male">
+                                <option value="en-US-AndrewNeural">Andrew - Steady & Professional</option>
+                                <option value="en-US-AndrewMultilingualNeural">Andrew (Multilingual)</option>
+                                <option value="en-US-BrianNeural">Brian - Clear & Powerful</option>
+                                <option value="en-US-BrianMultilingualNeural">Brian (Multilingual)</option>
+                                <option value="en-US-ChristopherNeural">Christopher - Authoritative</option>
+                                <option value="en-US-EricNeural">Eric - Young & Energetic</option>
+                                <option value="en-US-GuyNeural">Guy - Professional</option>
+                                <option value="en-US-RogerNeural">Roger - Deep & Mature</option>
+                                <option value="en-US-SteffanNeural">Steffan - Warm & Reliable</option>
+                            </optgroup>
+                            <optgroup label="🇬🇧 British English">
+                                <option value="en-GB-LibbyNeural">Libby - Elegant & Professional</option>
+                                <option value="en-GB-MaisieNeural">Maisie - Lively & Young</option>
+                                <option value="en-GB-SoniaNeural">Sonia - Friendly & Clear</option>
+                                <option value="en-GB-RyanNeural">Ryan - Steady & Natural</option>
+                                <option value="en-GB-ThomasNeural">Thomas - Mature & Steady</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    
+                    <div class="range-group">
+                        <label>
+                            ⚡ 语速
+                            <span class="range-value" id="tts-speed-value">1.0x</span>
+                        </label>
+                        <input type="range" id="tts-speed" min="0.5" max="2.0" step="0.1" value="1.0"
+                               oninput="document.getElementById('tts-speed-value').textContent=this.value+'x'">
+                    </div>
+                </div>
+                
+                <div class="range-group" style="margin-top: 15px;">
+                    <label>
+                        🔊 TTS音量
+                        <span class="range-value" id="tts-vol-value">100%</span>
+                    </label>
+                    <input type="range" id="tts-volume" min="0" max="2" step="0.1" value="1.0"
+                           oninput="document.getElementById('tts-vol-value').textContent=Math.round(this.value*100)+'%'">
+                </div>
+
+                <div class="options-grid" style="margin-top: 15px;">
+                    <label class="option-item">
+                        <input type="checkbox" id="opt-tts-subtitles">
+                        <span>📝 同步生成字幕（跟随TTS语音）</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button class="btn btn-secondary" id="btn-tts-preview" onclick="previewTTS()" style="flex: 1;">
+                        <span>🔊 试听</span>
+                    </button>
+                    <button class="btn btn-primary" id="btn-tts-generate" onclick="generateTTS()" style="flex: 1;">
+                        <span>✨ 生成语音</span>
+                    </button>
+                </div>
+                
+                <!-- TTS 播放器 -->
+                <div id="tts-player-container" class="hidden" style="margin-top: 15px; padding: 15px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px;">
+                    <p style="color: var(--success); margin: 0 0 10px 0;">✅ 语音生成成功！可与BGM同时混音</p>
+                    <audio id="tts-audio-player" controls style="width: 100%; height: 40px;"></audio>
+                    <input type="hidden" id="tts-filename" value="">
+                </div>
+            </div>
+
+            <!-- 视频效果 -->
+            <div class="section-title">🎨 视频效果</div>
+            
+            <div class="options-grid">
+                <label class="option-item">
+                    <input type="checkbox" id="opt-hflip" checked>
+                    <span>水平镜像</span>
+                </label>
+                <label class="option-item">
+                    <input type="checkbox" id="opt-crop" checked>
+                    <span>裁剪首尾</span>
+                </label>
+                <label class="option-item">
+                    <input type="checkbox" id="opt-color" checked>
+                    <span>调色优化</span>
+                </label>
+                <label class="option-item">
+                    <input type="checkbox" id="opt-zoom" checked>
+                    <span>智能缩放</span>
+                </label>
+            </div>
+            
+            <!-- 裁剪时间设置 -->
+            <div class="input-group" id="crop-time-settings" style="margin-top: 15px; padding: 15px; background: rgba(15, 23, 42, 0.5); border-radius: 10px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label style="font-size: 13px; color: var(--text-muted);">去除头部 (秒)</label>
+                        <input type="number" id="crop-head-time" class="select-box" value="0.5" min="0" max="10" step="0.1" style="width: 100%; margin-top: 5px; padding: 10px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; color: var(--text-muted);">去除尾部 (秒)</label>
+                        <input type="number" id="crop-tail-time" class="select-box" value="0.5" min="0" max="10" step="0.1" style="width: 100%; margin-top: 5px; padding: 10px;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="range-group">
+                <label>
+                    播放速度
+                    <span class="range-value" id="speed-value">1.05x</span>
+                </label>
+                <input type="range" id="speed" min="0.8" max="2.0" step="0.05" value="1.05"
+                       oninput="document.getElementById('speed-value').textContent=this.value+'x'">
+            </div>
+
+            <div class="range-group">
+                <label>
+                    Logo 大小
+                    <span class="range-value" id="logo-size-value">10%</span>
+                </label>
+                <input type="range" id="logo-size" min="0.05" max="0.3" step="0.01" value="0.10"
+                       oninput="document.getElementById('logo-size-value').textContent=Math.round(this.value*100)+'%'">
+            </div>
+
+            <div class="input-group">
+                <label>Logo 位置</label>
+                <select id="logo-position" class="select-box">
+                    <option value="top_left" selected>左上角</option>
+                    <option value="top_right">右上角</option>
+                    <option value="bottom_left">左下角</option>
+                    <option value="bottom_right">右下角</option>
+                    <option value="bottom_center">底部居中</option>
+                </select>
+            </div>
+
+            <!-- 字幕设置 -->
+            <div class="section-title">📝 字幕设置</div>
+            
+            <div class="options-grid">
+                <label class="option-item">
+                    <input type="checkbox" id="opt-subtitles">
+                    <span>添加字幕</span>
+                </label>
+            </div>
+            
+            <!-- 字幕配置面板 -->
+            <div id="subtitle-config-panel" style="display: none; padding: 20px; background: rgba(15, 23, 42, 0.5); border-radius: 12px; margin-bottom: 20px;">
+                
+                <div class="input-group">
+                    <label>字幕内容</label>
+                    <textarea id="subtitle-text" rows="2" placeholder="输入字幕内容，例如：Hello World" style="width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); border-radius: 10px; color: var(--text); resize: vertical;"></textarea>
+                </div>
+                
+                <div class="input-group">
+                    <label>
+                        显示时间
+                        <span style="color: var(--text-muted); font-size: 12px;">(秒)</span>
+                    </label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <input type="number" id="subtitle-start" class="select-box" value="0" min="0" max="60" step="0.5" placeholder="开始">
+                        <input type="number" id="subtitle-end" class="select-box" value="" min="0" max="60" step="0.5" placeholder="结束(留空到结尾)">
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>字幕样式</label>
+                    <select id="subtitle-style" class="select-box">
+                        <option value="yellow_classic">经典黄字</option>
+                        <option value="tiktok_box">TikTok风格</option>
+                        <option value="neon_cyan">霓虹青光</option>
+                        <option value="neon_pink">霓虹粉光</option>
+                        <option value="movie_clean">影视字幕</option>
+                        <option value="variety_bold">综艺风格</option>
+                        <option value="minimal_white">极简白字</option>
+                        <option value="white_outline">白字黑边</option>
+                        <option value="dark_box">黑底白字</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label>字体大小</label>
+                    <input type="number" id="subtitle-font-size" class="select-box" value="9" min="9" max="72" style="width: 100%;">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="input-group">
+                        <label>垂直位置</label>
+                        <select id="subtitle-position" class="select-box">
+                            <option value="bottom">底部</option>
+                            <option value="middle">中间</option>
+                            <option value="top">顶部</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>水平对齐</label>
+                        <select id="subtitle-align" class="select-box">
+                            <option value="center">居中</option>
+                            <option value="left">左对齐</option>
+                            <option value="right">右对齐</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>描边宽度</label>
+                    <select id="subtitle-outline" class="select-box">
+                        <option value="1" selected>细 (1px)</option>
+                        <option value="2">中 (2px)</option>
+                        <option value="3">粗 (3px)</option>
+                    </select>
+                </div>
+                
+                <!-- 预览 -->
+                <div style="margin-top: 15px; padding: 20px 15px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border-radius: 10px; text-align: center; position: relative; overflow: hidden;">
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 10px; letter-spacing: 1px;">效果预览</div>
+                    <div id="subtitle-preview" style="font-size: 22px; font-weight: bold; padding: 6px 14px; display: inline-block; border-radius: 4px; transition: all 0.3s ease; font-family: sans-serif;">
+                        Hello World
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="btn-edit" onclick="editVideo()">
+                <span>✨ 开始剪辑</span>
+            </button>
+            <div class="status" id="edit-status"></div>
+        </div>
+
+        <!-- 步骤 3: 完成 -->
+        <div class="card hidden" id="step3">
+            <div class="card-title">
+                <span class="step-number">3</span>
+                剪辑完成
+            </div>
+            <p style="color: var(--success); font-size: 1.2em;">🎉 视频剪辑成功！</p>
+            <video class="preview-video" id="preview-player" controls></video>
+            
+            <!-- 二维码传输区域 -->
+            <div id="qr-section" style="margin: 25px 0; padding: 25px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-radius: 16px; border: 2px solid var(--primary); text-align: center; display: none;">
+                <p style="margin-bottom: 5px; color: var(--text); font-size: 1.1em; font-weight: 600;">📱 手机扫码下载</p>
+                <p style="margin-bottom: 15px; color: var(--text-muted); font-size: 0.9em;">使用微信/浏览器扫描二维码即可下载视频</p>
+                <img id="qr-image" src="" alt="下载二维码" style="max-width: 220px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); background: white; padding: 10px;">
+                <p id="qr-url" style="margin-top: 15px; font-size: 0.85em; color: var(--accent); font-family: monospace; word-break: break-all;"></p>
+            </div>
+            
+            <div class="action-buttons">
+                <a id="download-link" class="btn btn-primary" download>⬇️ 下载视频</a>
+                <button class="btn btn-secondary" onclick="location.reload()">🔄 处理下一个</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentNoteId = null;
+        let logosData = [];
+        let bgmsData = [];
+
+        function showStatus(id, msg, isError) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.className = 'status show ' + (isError ? 'error' : 'success');
+        }
+
+        function setLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            if (loading) {
+                btn.disabled = true;
+                btn.innerHTML = '<div class="spinner"></div><span>处理中...</span>';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = btnId === 'btn-download' ? '<span>开始下载</span>' : '<span>✨ 开始剪辑</span>';
+            }
+        }
+
+        async function loadLogos() {
+            try {
+                const res = await fetch('api/logos/list');
+                const data = await res.json();
+                logosData = data.logos || [];
+                const select = document.getElementById('logo-select');
+                select.innerHTML = '<option value="">-- 请选择 --</option>';
+                logosData.forEach(logo => {
+                    const opt = document.createElement('option');
+                    opt.value = logo.name;
+                    opt.textContent = logo.name + ' (' + logo.size_kb + 'KB)';
+                    select.appendChild(opt);
+                });
+                if (logosData.length > 0) select.value = logosData[0].name;
+            } catch (e) {
+                console.error('加载 Logo 失败:', e);
+            }
+        }
+
+        async function loadBgms() {
+            try {
+                const res = await fetch('api/bgm/list');
+                const data = await res.json();
+                bgmsData = data.bgms || [];
+                const select = document.getElementById('bgm-select');
+                select.innerHTML = '<option value="">-- 请选择 --</option>';
+                bgmsData.forEach(bgm => {
+                    const opt = document.createElement('option');
+                    opt.value = bgm.name;
+                    opt.textContent = bgm.name + ' (' + bgm.size_mb + 'MB)';
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error('加载 BGM 失败:', e);
+            }
+        }
+
+        // 更新 BGM 预览按钮状态
+        function updateBgmPreview() {
+            const select = document.getElementById('bgm-select');
+            const btn = document.getElementById('btn-preview-bgm');
+            btn.disabled = !select.value;
+            
+            // 如果切换了 BGM，停止当前播放
+            const player = document.getElementById('bgm-audio-player');
+            const container = document.getElementById('bgm-player-container');
+            if (player) {
+                player.pause();
+                player.src = '';
+                container.style.display = 'none';
+            }
+        }
+
+        // BGM 试听功能
+        function previewBgm() {
+            const select = document.getElementById('bgm-select');
+            const filename = select.value;
+            if (!filename) return;
+            
+            const player = document.getElementById('bgm-audio-player');
+            const container = document.getElementById('bgm-player-container');
+            
+            player.src = 'api/bgm/preview/' + encodeURIComponent(filename);
+            container.style.display = 'block';
+            player.play().catch(e => {
+                console.log('自动播放被阻止，请手动点击播放');
+            });
+        }
+
+        async function downloadVideo() {
+            const url = document.getElementById('xhs-url').value.trim();
+            if (!url) {
+                showStatus('download-status', '请输入链接', true);
+                return;
+            }
+
+            setLoading('btn-download', true);
+            try {
+                const res = await fetch('api/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    currentNoteId = result.data.note_id;
+                    showStatus('download-status', `✅ 下载成功！${result.data.size_mb}MB`);
+                    await loadLogos();
+                    await loadBgms();
+                    document.getElementById('step2').classList.remove('hidden');
+                    document.getElementById('step2').classList.add('fade-in');
+                    document.getElementById('step2').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    showStatus('download-status', '❌ ' + result.error, true);
+                }
+            } catch (e) {
+                showStatus('download-status', '❌ 网络错误', true);
+            } finally {
+                setLoading('btn-download', false);
+            }
+        }
+
+        async function uploadLogo(input) {
+            if (!input.files.length) return;
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+            try {
+                const res = await fetch('api/upload/logo', { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    alert('✅ ' + result.message);
+                    await loadLogos();
+                } else {
+                    alert('❌ ' + result.error);
+                }
+            } catch (e) {
+                alert('上传失败');
+            }
+        }
+
+        async function uploadBgm(input) {
+            if (!input.files.length) return;
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+            try {
+                const res = await fetch('api/upload/bgm', { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    alert('✅ ' + result.message);
+                    await loadBgms();
+                } else {
+                    alert('❌ ' + result.error);
+                }
+            } catch (e) {
+                alert('上传失败');
+            }
+        }
+
+        // 字幕面板显示控制（手动字幕与TTS字幕互斥）
+        document.getElementById('opt-subtitles').addEventListener('change', function() {
+            const panel = document.getElementById('subtitle-config-panel');
+            panel.style.display = this.checked ? 'block' : 'none';
+            if (this.checked) {
+                // 关闭TTS同步字幕
+                document.getElementById('opt-tts-subtitles').checked = false;
+            }
+        });
+
+        document.getElementById('opt-tts-subtitles').addEventListener('change', function() {
+            if (this.checked) {
+                // 关闭手动字幕
+                document.getElementById('opt-subtitles').checked = false;
+                document.getElementById('subtitle-config-panel').style.display = 'none';
+            }
+        });
+
+        // 字幕效果实时预览
+        function updateSubtitlePreview() {
+            const style = document.getElementById('subtitle-style').value;
+            const size = document.getElementById('subtitle-font-size').value || 9;
+            const preview = document.getElementById('subtitle-preview');
+            const displaySize = Math.max(size * 2, 18);
+
+            // 样式配置: color, outlineColor, outlineWidth, shadow, type(outline/box/neon), bgColor, bold
+            const styles = {
+                'yellow_classic': { color: '#FFD700', outlineColor: '#000', outlineWidth: 3, shadow: true, type: 'outline', bold: true },
+                'tiktok_box':     { color: '#FFF', outlineColor: '#000', outlineWidth: 0, shadow: false, type: 'box', bgColor: 'rgba(0,0,0,0.7)', bold: true },
+                'neon_cyan':      { color: '#00FFFF', outlineColor: '#0088FF', outlineWidth: 3, shadow: true, type: 'neon', glowColor: '#00FFFF', bold: true },
+                'neon_pink':      { color: '#FF69B4', outlineColor: '#CC00FF', outlineWidth: 3, shadow: true, type: 'neon', glowColor: '#FF69B4', bold: true },
+                'movie_clean':    { color: '#FFFFFF', outlineColor: '#000', outlineWidth: 1, shadow: false, type: 'outline', bold: false },
+                'variety_bold':   { color: '#FFD700', outlineColor: '#000', outlineWidth: 5, shadow: true, type: 'outline', bold: true },
+                'minimal_white':  { color: '#FFFFFF', outlineColor: '#000', outlineWidth: 1, shadow: false, type: 'outline', bold: true },
+                'white_outline':  { color: '#FFFFFF', outlineColor: '#000', outlineWidth: 3, shadow: true, type: 'outline', bold: true },
+                'dark_box':       { color: '#FFF', outlineColor: '#333', outlineWidth: 0, shadow: false, type: 'box', bgColor: 'rgba(0,0,0,0.8)', bold: true }
+            };
+
+            const s = styles[style] || styles['yellow_classic'];
+            const ow = s.outlineWidth;
+
+            // 重置样式
+            preview.style.color = s.color;
+            preview.style.fontSize = displaySize + 'px';
+            preview.style.fontWeight = s.bold ? 'bold' : 'normal';
+            preview.style.background = 'none';
+            preview.style.borderRadius = '4px';
+            preview.style.padding = '6px 14px';
+
+            if (s.type === 'box') {
+                // 背景框样式 (TikTok / 黑底白字)
+                preview.style.textShadow = 'none';
+                preview.style.background = s.bgColor;
+                preview.style.borderRadius = '6px';
+                preview.style.padding = '8px 18px';
+            } else if (s.type === 'neon') {
+                // 霓虹发光样式
+                const gc = s.glowColor;
+                preview.style.textShadow = `
+                    0 0 5px ${gc},
+                    0 0 10px ${gc},
+                    0 0 20px ${gc},
+                    0 0 40px ${s.outlineColor},
+                    0 0 2px #000
+                `;
+            } else {
+                // 描边样式 (经典)
+                const oc = s.outlineColor;
+                const shadows = [];
+                for (let x = -ow; x <= ow; x++) {
+                    for (let y = -ow; y <= ow; y++) {
+                        if (x !== 0 || y !== 0) shadows.push(`${x}px ${y}px 0 ${oc}`);
+                    }
+                }
+                if (s.shadow) shadows.push('2px 2px 3px rgba(0,0,0,0.6)');
+                preview.style.textShadow = shadows.join(', ');
+            }
+        }
+        
+        document.getElementById('subtitle-style').addEventListener('change', updateSubtitlePreview);
+        document.getElementById('subtitle-font-size').addEventListener('input', updateSubtitlePreview);
+
+        // 选项卡切换
+        function switchTab(tab) {
+            const tabDownload = document.getElementById('tab-download');
+            const tabUpload = document.getElementById('tab-upload');
+            const panelDownload = document.getElementById('panel-download');
+            const panelUpload = document.getElementById('panel-upload');
+            
+            if (tab === 'download') {
+                tabDownload.classList.remove('btn-secondary');
+                tabDownload.classList.add('btn-primary');
+                tabUpload.classList.remove('btn-primary');
+                tabUpload.classList.add('btn-secondary');
+                panelDownload.classList.remove('hidden');
+                panelUpload.classList.add('hidden');
+            } else {
+                tabUpload.classList.remove('btn-secondary');
+                tabUpload.classList.add('btn-primary');
+                tabDownload.classList.remove('btn-primary');
+                tabDownload.classList.add('btn-secondary');
+                panelUpload.classList.remove('hidden');
+                panelDownload.classList.add('hidden');
+            }
+        }
+        
+        // 默认选中下载选项卡
+        switchTab('download');
+        
+        // 上传视频
+        async function uploadVideo(input) {
+            if (!input.files.length) return;
+            
+            const file = input.files[0];
+            const statusEl = document.getElementById('download-status');
+            
+            // 显示上传状态
+            statusEl.className = 'status show';
+            statusEl.style.color = 'var(--text)';
+            statusEl.innerHTML = '<div class="spinner" style="display: inline-block; margin-right: 10px;"></div>正在上传...';
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const res = await fetch('api/upload/video', { method: 'POST', body: formData });
+                const result = await res.json();
+                
+                if (result.success) {
+                    currentNoteId = result.data.note_id;
+                    
+                    // 显示上传成功信息
+                    document.getElementById('uploaded-filename').textContent = result.data.filename;
+                    document.getElementById('uploaded-size').textContent = result.data.size_mb + ' MB';
+                    document.getElementById('uploaded-video-info').classList.remove('hidden');
+                    
+                    showStatus('download-status', result.data.message);
+                    
+                    // 加载资源并跳转到剪辑配置
+                    await loadLogos();
+                    await loadBgms();
+                    document.getElementById('step2').classList.remove('hidden');
+                    document.getElementById('step2').classList.add('fade-in');
+                    document.getElementById('step2').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    showStatus('download-status', '❌ ' + result.error, true);
+                }
+            } catch (e) {
+                showStatus('download-status', '❌ 上传失败: ' + e.message, true);
+            }
+        }
+
+        // 格式化日志显示
+        function formatLogLine(line) {
+            // 匹配时间戳 [YYYY-MM-DD HH:MM:SS]
+            const timeMatch = line.match(/^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})/);
+            const time = timeMatch ? timeMatch[1] : '';
+            const content = timeMatch ? line.substring(timeMatch[0].length).trim() : line;
+            
+            // 判断日志级别
+            let levelClass = 'log-debug';
+            if (content.includes('[ERROR]') || content.includes('❌')) {
+                levelClass = 'log-error';
+            } else if (content.includes('[INFO]') || content.includes('✅') || content.includes('🎬') || content.includes('📁')) {
+                levelClass = 'log-info';
+            } else if (content.includes('[WARNING]') || content.includes('⚠️')) {
+                levelClass = 'log-warn';
+            }
+            
+            return `<div class="log-line"><span class="log-time">${time}</span><span class="${levelClass}">${escapeHtml(content)}</span></div>`;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function showLogs(logs, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            if (!logs || logs.length === 0) {
+                container.innerHTML = '<div class="log-line"><span class="log-debug">暂无日志</span></div>';
+                return;
+            }
+            
+            container.innerHTML = logs.map(formatLogLine).join('');
+            // 滚动到底部
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function editVideo() {
+            if (!currentNoteId) {
+                showStatus('edit-status', '请先下载视频', true);
+                return;
+            }
+
+            const logoSelect = document.getElementById('logo-select').value;
+            const bgmSelect = document.getElementById('bgm-select').value;
+            const replaceAudio = document.getElementById('opt-replace-audio').checked;
+
+            // 获取裁剪时间
+            const isCropEnabled = document.getElementById('opt-crop').checked;
+            const cropHeadTime = isCropEnabled ? parseFloat(document.getElementById('crop-head-time').value) || 0 : 0;
+            const cropTailTime = isCropEnabled ? parseFloat(document.getElementById('crop-tail-time').value) || 0 : 0;
+
+            // 获取字幕配置
+            const addSubtitles = document.getElementById('opt-subtitles').checked;
+            let subtitleConfig = {};
+            
+            if (addSubtitles) {
+                const subtitleText = document.getElementById('subtitle-text').value.trim();
+                if (!subtitleText) {
+                    showStatus('edit-status', '请输入字幕内容', true);
+                    return;
+                }
+                
+                const subtitleEnd = document.getElementById('subtitle-end').value;
+                
+                subtitleConfig = {
+                    add_subtitles: true,
+                    subtitle_text: subtitleText,
+                    subtitle_start: parseFloat(document.getElementById('subtitle-start').value) || 0,
+                    subtitle_end: subtitleEnd ? parseFloat(subtitleEnd) : null,
+                    subtitle_style: document.getElementById('subtitle-style').value,
+                    subtitle_font_size: parseInt(document.getElementById('subtitle-font-size').value) || 9,
+                    subtitle_position: document.getElementById('subtitle-position').value,
+                    subtitle_align: document.getElementById('subtitle-align').value,
+                    subtitle_outline_width: parseInt(document.getElementById('subtitle-outline').value) || 1
+                };
+            }
+
+            // 获取 TTS 配置
+            const useTTS = document.getElementById('opt-tts').checked;
+            let ttsConfig = {};
+            
+            if (useTTS) {
+                const ttsText = document.getElementById('tts-text').value.trim();
+                const ttsFilename = document.getElementById('tts-filename').value;
+                
+                if (!ttsText) {
+                    showStatus('edit-status', '请勾选AI配音后输入文案内容', true);
+                    return;
+                }
+                
+                if (!ttsFilename) {
+                    showStatus('edit-status', '请先生成语音', true);
+                    return;
+                }
+                
+                ttsConfig = {
+                    use_tts: true,
+                    tts_filename: ttsFilename,
+                    tts_text: ttsText,
+                    tts_voice: document.getElementById('tts-voice').value,
+                    tts_speed: parseFloat(document.getElementById('tts-speed').value),
+                    tts_volume: parseFloat(document.getElementById('tts-volume').value),
+                    use_tts_subtitles: document.getElementById('opt-tts-subtitles').checked
+                };
+            }
+
+            setLoading('btn-edit', true);
+            
+            // 清空之前的日志显示
+            const statusEl = document.getElementById('edit-status');
+            statusEl.innerHTML = '';
+
+            const config = {
+                crop_top: cropHeadTime,
+                crop_bottom: cropTailTime,
+                speed: parseFloat(document.getElementById('speed').value),
+                hflip: document.getElementById('opt-hflip').checked,
+                zoom: document.getElementById('opt-zoom').checked ? 1.05 : 1.0,
+                brightness: document.getElementById('opt-color').checked ? 0.05 : 0,
+                contrast: document.getElementById('opt-color').checked ? 0.1 : 0,
+                saturation: document.getElementById('opt-color').checked ? 0.05 : 0,
+                add_logo: !!logoSelect,
+                logo_select: logoSelect,
+                logo_position: document.getElementById('logo-position').value,
+                logo_size: parseFloat(document.getElementById('logo-size').value),
+                replace_audio: replaceAudio || useTTS,  // 使用TTS时自动替换原声
+                bgm_select: bgmSelect,
+                bgm_volume: parseFloat(document.getElementById('bgm-volume').value),
+                original_volume: useTTS ? 0 : parseFloat(document.getElementById('original-volume').value),  // TTS时原声为0
+                ...subtitleConfig,
+                ...ttsConfig
+            };
+
+            try {
+                const res = await fetch('api/edit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ note_id: currentNoteId, config })
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    showStatus('edit-status', '✅ 剪辑成功！');
+                    document.getElementById('step3').classList.remove('hidden');
+                    document.getElementById('step3').classList.add('fade-in');
+                    document.getElementById('preview-player').src = result.data.preview_url;
+                    document.getElementById('download-link').href = result.data.download_url;
+                    window.currentVideoName = result.data.output_name;
+                    
+                    // 显示二维码
+                    if (result.data.qr_url) {
+                        const qrSection = document.getElementById('qr-section');
+                        const qrImage = document.getElementById('qr-image');
+                        const qrUrl = document.getElementById('qr-url');
+                        
+                        qrImage.src = result.data.qr_url;
+                        qrUrl.textContent = result.data.download_url || '';
+                        qrSection.style.display = 'block';
+                        
+                        // 显示局域网地址提示
+                        if (result.data.local_ip) {
+                            console.log('🌐 局域网访问地址: http://' + result.data.local_ip + ':5000');
+                        }
+                    }
+                    
+                    document.getElementById('step3').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    // 构建详细的错误显示
+                    let errorHtml = `<div style="color: var(--error); margin-bottom: 10px;">❌ ${escapeHtml(result.error)}</div>`;
+                    
+                    if (result.detail) {
+                        errorHtml += `<div style="color: var(--text-muted); margin-bottom: 10px; font-size: 0.9em;">${escapeHtml(result.detail)}</div>`;
+                    }
+                    
+                    // 添加日志显示区域
+                    errorHtml += '<div style="margin-top: 15px;">';
+                    errorHtml += '<div class="log-toggle" onclick="toggleLogs()">📋 查看详细日志 ▼</div>';
+                    errorHtml += '<div id="error-logs" class="log-container" style="display: none;">';
+                    errorHtml += '</div></div>';
+                    
+                    statusEl.className = 'status show error';
+                    statusEl.innerHTML = errorHtml;
+                    
+                    // 显示日志
+                    showLogs(result.logs || [], 'error-logs');
+                    
+                    // 如果 traceback 存在，也显示
+                    if (result.traceback) {
+                        console.error('剪辑错误详情:', result.traceback);
+                    }
+                }
+            } catch (e) {
+                showStatus('edit-status', '❌ 网络错误: ' + e.message, true);
+            } finally {
+                setLoading('btn-edit', false);
+            }
+        }
+        
+        function toggleLogs() {
+            const logsContainer = document.getElementById('error-logs');
+            const toggle = document.querySelector('.log-toggle');
+            if (logsContainer.style.display === 'none') {
+                logsContainer.style.display = 'block';
+                toggle.innerHTML = '📋 隐藏详细日志 ▲';
+            } else {
+                logsContainer.style.display = 'none';
+                toggle.innerHTML = '📋 查看详细日志 ▼';
+            }
+        }
+        
+        // ========== TTS 脚本配音功能 ==========
+        let currentTTSFile = null;
+        
+        function toggleTTSPanel() {
+            const panel = document.getElementById('tts-config-panel');
+            const isChecked = document.getElementById('opt-tts').checked;
+            panel.style.display = isChecked ? 'block' : 'none';
+        }
+        
+        async function previewTTS() {
+            const text = document.getElementById('tts-text').value.trim();
+            if (!text) {
+                showStatus('edit-status', '❌ 请输入文案内容', true);
+                return;
+            }
+            
+            const btn = document.getElementById('btn-tts-preview');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 5px;"></div>生成中...';
+            
+            try {
+                const voice = document.getElementById('tts-voice').value;
+                const speed = parseFloat(document.getElementById('tts-speed').value);
+                
+                const res = await fetch('api/tts/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, voice, speed })
+                });
+                const result = await res.json();
+                
+                if (result.success) {
+                    const player = document.getElementById('tts-audio-player');
+                    player.src = result.data.preview_url;
+                    player.play();
+                    showStatus('edit-status', '✅ 试听生成成功！');
+                } else {
+                    showStatus('edit-status', '❌ ' + (result.error || '生成失败'), true);
+                }
+            } catch (e) {
+                showStatus('edit-status', '❌ 网络错误: ' + e.message, true);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>🔊 试听</span>';
+            }
+        }
+        
+        async function generateTTS() {
+            const text = document.getElementById('tts-text').value.trim();
+            if (!text) {
+                showStatus('edit-status', '❌ 请输入文案内容', true);
+                return;
+            }
+            
+            const btn = document.getElementById('btn-tts-generate');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 5px;"></div>生成中...';
+            
+            try {
+                const voice = document.getElementById('tts-voice').value;
+                const speed = parseFloat(document.getElementById('tts-speed').value);
+                
+                const res = await fetch('api/tts/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, voice, speed })
+                });
+                const result = await res.json();
+                
+                if (result.success) {
+                    currentTTSFile = result.data.filename;
+                    
+                    // 保存文件名到隐藏字段
+                    document.getElementById('tts-filename').value = result.data.filename;
+                    
+                    // 显示播放器
+                    document.getElementById('tts-player-container').classList.remove('hidden');
+                    const player = document.getElementById('tts-audio-player');
+                    player.src = result.data.preview_url;
+                    
+                    showStatus('edit-status', '✅ 语音生成成功！点击「开始剪辑」即可应用到视频');
+                } else {
+                    showStatus('edit-status', '❌ ' + (result.error || '生成失败'), true);
+                }
+            } catch (e) {
+                showStatus('edit-status', '❌ 网络错误: ' + e.message, true);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>✨ 生成语音</span>';
+            }
+        }
+    </script>
+</body>
+</html>
